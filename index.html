@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<title>友邻邦登录</title>
+	<link href="css/main.css" rel="stylesheet"/>
+</head>
+<body class="pdBody">
+
+<button type="button" class="btnBlock f-btnLogin" id="f-btnLogin">登录</button>
+
+
+<script type="text/javascript" src="js/vue.js"></script>
+<script type="text/javascript" src="js/axios.min.js"></script>
+<script type="text/javascript" src="js/zepto.js"></script>
+<script type="text/javascript" src="js/md5.js"></script>
+<script>
+
+	var btnLogin=document.getElementById('f-btnLogin');
+	btnLogin.onclick=function(){
+		var accountVal="13694931757";
+		var wxCode=GetQueryString('code');
+		var wxPassWord = hex_md5(wxCode+hex_md5('123456'));
+		var URL='http://120.236.162.132:8084/wx/wx_user_login.json';
+
+		var bodys=toQueryString({
+			code: wxCode,
+			username: accountVal,
+			password: wxPassWord
+		});
+
+		var datas = {
+			code: wxCode,
+			username: accountVal,
+			password: wxPassWord
+		};
+		$.ajax({
+			type: "POST",
+			url: URL,
+			data: datas,
+			dataType: "json",
+			success: function(msg){
+				alert('*********'+msg.code);
+				var res=msg.result;
+				localStorage.setItem('usernameLS',res.username);
+				localStorage.setItem('tokenLS',res.token);
+				localStorage.setItem('userIdLS',res.user_id);
+				window.location.href='vueTestlA.html';
+			},
+			error : function() {
+
+				alert("异常！");
+			}
+		});
+//		$.ajax({
+//			type: "GET",
+//			url: URL,
+//			data: datas,
+//			dataType: "json",
+//			success: function(data){
+//				console.log(res.code);
+//			}
+//		});
+//		// 发送 POST 请求
+//		axios({
+//			method: 'post',
+//			url: URL,
+//			data: {
+//				code: wxCode,
+//				username: accountVal,
+//				password: wxPassWord
+//			}
+//		}).then(function (response) {
+//			console.log(response);
+//		})
+//		.catch(function (error) {
+//			alert(error);
+//		});
+
+//		fetch(URL,{
+//			method: "POST",
+//			mode: "cors",
+//			body:bodys
+//		}).then(function(response) {
+//			return response.json();
+//		}).then(function(json) {
+//			alert("请求登录");
+//			if(json.code==='0'){
+//				var res=json.result;
+//				//alert(json.code);fs_ip
+//				localStorage.setItem('usernameLS',res.username);
+//				localStorage.setItem('tokenLS',res.token);
+//				localStorage.setItem('userIdLS',res.user_id);
+//				window.location.href='arealist.html';
+//			}else if(json.code==='3'){
+//				alert(json.msg);
+//			}else if(json.code==='4008'){
+//				alert(json.msg);
+//			}else if(json.code==='1001'){
+//				alert(json.msg);
+//			}else if(json.code==='8'){
+//				alert(json.msg);
+//			}else if(json.code==='2002'){
+//				alert(json.msg);
+//			}
+//		}).catch(function(err) {
+//			// 捕获错误
+//			alert('请求报错了');
+//			alert(err);
+//		});
+
+	};
+
+	function toQueryString(obj) {
+		return obj ? Object.keys(obj).sort().map(function (key) {
+			var val = obj[key];
+			if (Array.isArray(val)) {
+				return val.sort().map(function (val2) {
+					return encodeURIComponent(key) + '=' + encodeURIComponent(val2);
+				}).join('&');
+			}
+
+			return encodeURIComponent(key) + '=' + encodeURIComponent(val);
+		}).join('&') : '';
+	}
+	function GetQueryString(name)
+	{
+		var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+		var r = window.location.search.substr(1).match(reg);
+		if(r!=null)return  unescape(r[2]); return null;
+	}
+
+
+
+
+</script>
+</body>
+</html>

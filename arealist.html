@@ -1,0 +1,222 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>切换小区</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="css/main.css" rel="stylesheet"/>
+</head>
+<body class="f-areaList">
+<div class="content" id="f-areaList">
+    <ul class="table-view">
+        <li class="table-view-cell"  v-for="(lists,$index) in areaList" :id="lists.id">
+            <a class="mui-navigate-right" href="javascript:void(0);">
+                <label :for="$index" @click="lockItem(lists.fneib_name,lists.id,lists.fip,lists.fport,$index)">
+                    <span class="name" v-text="lists.fneib_name"></span>
+                </label>
+                <!--<input name="radio"type="radio" :id="$index" :checked="lists.checked"/>-->
+                <span :id="$index" :class="{Iradio:true,check:lists.checked}"></span>
+                <span class="curIcon" v-if="lists.checked">当前</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+<div class="f-markPop" id="f-markPop" style="display: none;"></div>
+<div class="f-confirm" id="f-confirm" style="display: none;">
+    <div class="text">选择后可以在“我的－我的小区”切换小区，是否确认选择？</div>
+    <div class="btn">
+        <botton class="true" id="trueID">确认</botton>
+        <botton class="cancel" id="cancelID">返回</botton>
+    </div>
+</div>
+<!---->
+<script src="js/vue.js"></script>
+<script src="js/zepto.js"></script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+
+<script>
+
+//    $('.Iradio').on('click',function(){
+//
+//    });
+
+    var vareaList=new Vue({
+        el:'#f-areaList',
+        data:{
+            areaList:[
+//                {name:'百步亭Item 1',id:"aaa"}
+            ],
+            curAreaTitle:'666'
+        },
+        methods:{
+            lockItem:function(name,id,fip,fport,index){
+//                if($('#'+index)[0].checked)
+                if($('#'+index).hasClass('check'))
+                    return;//当前的不可操作；
+                $('#f-markPop,#f-confirm').show();
+                var fs_ip=fip;
+                var fs_port=fport;
+                var username=localStorage.getItem('usernameLS');
+                var token=localStorage.getItem('tokenLS');
+                var userId=localStorage.getItem('userIdLS');
+                var userId=eval(userId);
+                PURL='https://'+fs_ip+':'+fs_port+'/users/is_can_binding.json';
+                Pheaders={
+                    'token': token,
+                    'username': username
+                };
+                Pdatas={
+                    username: username,
+                    nei_name: name,
+                    user_id: userId
+                };
+                prevRadio=$('.f-areaList .Iradio.check');
+                $('#'+index).addClass('check').siblings().removeClass('check');
+
+                document.getElementById('cancelID').addEventListener('click',function(){
+                    if($('.f-areaList .Iradio').hasClass('check'));
+                        $('.f-areaList .Iradio').removeClass('check');
+                    if(prevRadio.length>0){
+                        prevRadio.addClass('check');
+                    }
+
+                });
+                document.getElementById('trueID').addEventListener('click',function(){
+                    $.ajax({
+                        type: "GET",
+                        url: PURL,
+                        headers: Pheaders,
+                        data: Pdatas,
+                        dataType: "json",
+                        success: function(msg){
+                            var res=msg.result;
+                            if(res.can_binding){
+
+                                var fs_ip_port=PURL.split('//')[1].split('/')[0];
+                                var neigbor_id=res.neibor_id.neighborhoods_id;
+                                var neigbor_name=res.neibor_id.fneibname;
+                                localStorage.setItem('fs_ip_portLS',fs_ip_port);
+                                localStorage.setItem('neigbor_idLS',neigbor_id);
+                                localStorage.setItem('neigbor_nameLS',neigbor_name);
+
+//                              window.location.href='locklist.html';
+
+                                wx.closeWindow();
+                            }else {
+                                Mtoast('该小区暂未与您的帐号关联');
+                                $('#cancelID').trigger('click');
+                            }
+                        },
+                        error : function() {
+                            Mtoast("异常！");
+                            if($('.f-areaList .Iradio').hasClass('check'));
+                                $('.f-areaList .Iradio').removeClass('check');
+                            if(prevRadio.length)
+                                prevRadio .checked=true;
+                        }
+                    });
+                });
+
+            }
+        }
+    });
+    var markPop=document.getElementById('f-markPop');
+    var confirm=document.getElementById('f-confirm');
+    var trueID=document.getElementById('trueID');
+    var cancelID=document.getElementById('cancelID');
+
+    trueID.addEventListener('click',function(){
+        confirm.style.display='none';
+        markPop.style.display='none';
+    });
+    cancelID.addEventListener('click',function(){
+        confirm.style.display='none';
+        markPop.style.display='none';
+    });
+
+//、、、、、、、、、、、
+//
+    var username=localStorage.getItem('usernameLS');
+    var token=localStorage.getItem('tokenLS');
+    var userId=localStorage.getItem('userIdLS');
+    var userId=eval(userId);
+
+    // 创建时带上参数
+    var serverInput=localStorage.getItem('serverInputLS');
+    var URL=serverInput+'/users/get_nei_ip_list.json';
+    var headers={
+        'token': token,
+        'username': username
+    };
+    var datas={
+        'user_id':userId
+    };
+    $.ajax({
+        type: "GET",
+        url: URL,
+        headers:headers,
+        data:datas,
+        dataType: "json",
+        success: function(msg){
+            if(msg.code==='0'){
+                var res=msg.result;
+                var canbind=[];
+                for(var i= 0,len=res.length;i<len;i++){
+                    if(res[i].fuser_id){
+                        canbind.push(res[i])
+                    }
+                }
+
+                var neigbor_name=localStorage.getItem('neigbor_nameLS')
+                for(var k= 0,lenk=canbind.length;k<lenk;k++){
+                    if(canbind[k].fneib_name==neigbor_name){
+                        canbind[k].checked=true;
+                    }else{
+                        canbind[k].checked=false;
+                    }
+                }
+                vareaList.areaList=canbind;
+            }else if(msg.code==='3'){
+//                Mtoast(msg.msg);
+                //自动登录；
+                localStorage.setItem('jumpURLLS','arealist');
+                window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/autologin.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+//                window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/login.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+            }else {
+//                Mtoast(msg.msg);
+                window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/login.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+            }
+        },
+        error : function() {
+            alert("小区获取失败，请重新登录！");
+            window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/login.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+        }
+    });
+
+    //
+    function Mtoast(ev,time){
+        var box=document.createElement('div');
+        box.setAttribute('class','m-toastBox');
+        var text=document.createElement('div');
+        text.setAttribute('class','m-toastText');
+        var txt=document.createTextNode(ev);
+        text.appendChild(txt);
+        box.appendChild(text);
+        document.getElementsByTagName('body')[0].appendChild(box);
+        box.setAttribute('class','m-toastBox');
+        $('.m-toastBox').addClass('m-active');
+        setTimeout(removefunc,time||2000);
+        function removefunc(){
+            $('.m-toastBox').removeClass('m-active');
+            setTimeout(removefunccc,500);
+        }
+        function removefunccc(){
+            $('.m-toastBox').remove();
+        }
+    }
+</script>
+</body>
+
+</html>

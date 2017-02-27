@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>选择小区</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="css/main.css" rel="stylesheet"/>
+    <style>
+        .fade-enter{
+            opacity: 0;
+            transition: all .5s;
+        }
+        .fade-enter-active{
+            opacity: 1;
+        }
+        .fade-enter-active, .fade-leave{
+            opacity: 1;
+            transition: opacity 1s
+        }
+        .fade-enter, .fade-leave-active {
+            opacity: 0.1
+        }
+    </style>
+</head>
+<body class="f-areaList" >
+<div id="f-areaList">
+    <div class="content">
+        <ul class="table-view">
+            <li class="table-view-cell"  v-for="(lists,$index) in areaList" :id="lists.id">
+                <a class="mui-navigate-right" href="javascript:void(0);">
+                    <label :for="$index" ><span class="name" @click="lockItem()">{{lists.name}}</span></label>
+                    <input name="radio"type="radio" :id="$index"/>
+                </a>
+            </li>
+        </ul>
+    </div>
+    <button v-on:click="transitionBool = !transitionBool">
+        Toggle
+    </button>
+    <transition name="fade">
+        <div v-if="transitionBool">
+            <div class="f-markPop" id="f-markPop" style="display: block"></div>
+            <div class="f-confirm" id="f-confirm" >
+                <div class="text">选择后可以在“我的－我的小区”切换小区，是否确认选择？</div>
+                <div class="btn">
+                    <botton class="true" id="trueID">确认</botton>
+                    <botton class="cancel" id="cancelID">返回</botton>
+                </div>
+            </div>
+        </div>
+    </transition>
+</div>
+<div id="demo">
+    <button v-on:click="show = !show">
+        Toggle
+    </button>
+    <transition name="fade">
+        <p v-if="show" id="jjj">hello</p>
+    </transition>
+</div>
+<!--<div id="demo">-->
+    <!--<button v-on:click="show = !show">-->
+        <!--Toggle-->
+    <!--</button>-->
+    <!--<transition name="fade">-->
+        <!--<p v-if="show">hello</p>-->
+    <!--</transition>-->
+<!--</div>-->
+<!--<transition name="fade">-->
+    <!--&lt;!&ndash;<div v-if="transitionBool">&ndash;&gt;-->
+        <!--&lt;!&ndash;<div class="f-markPop" id="f-markPop" v-if="transitionBool"></div>&ndash;&gt;-->
+        <!--&lt;!&ndash;<div class="f-confirm" id="f-confirm"  v-if="transitionBool">&ndash;&gt;-->
+            <!--&lt;!&ndash;<div class="text">选择后可以在“我的－我的小区”切换小区，是否确认选择？</div>&ndash;&gt;-->
+            <!--&lt;!&ndash;<div class="btn">&ndash;&gt;-->
+                <!--&lt;!&ndash;<botton class="true" id="trueID">确认</botton>&ndash;&gt;-->
+                <!--&lt;!&ndash;<botton class="cancel" id="cancelID">返回</botton>&ndash;&gt;-->
+            <!--&lt;!&ndash;</div>&ndash;&gt;-->
+        <!--&lt;!&ndash;</div>&ndash;&gt;-->
+    <!--&lt;!&ndash;</div>&ndash;&gt;-->
+    <!--<p v-if="transitionBool">hello</p>-->
+<!--</transition>-->
+
+<script src="js/vue.js"></script>
+<script src="js/zepto.js"></script>
+<script>
+    new Vue({
+        el: '#demo',
+        data: {
+            show: false
+        }
+    });
+    var vareaList=new Vue({
+        el:'#f-areaList',
+        data:{
+            areaList:[
+                {name:'百步亭Item 1',id:"aaa"},
+                {name:'十步亭Item 2',id:"bbb"},
+                {name:'一步亭Item 3',id:"ccc"},
+                {name:'万步亭Item 4',id:"ddd"}
+            ],
+            curAreaTitle:'666',
+            transitionBool:false
+        },
+        methods:{
+            lockItem:function(){
+                vareaList.transitionBool=!vareaList.transitionBool;
+                    document.getElementById('trueID').addEventListener('click',function(){
+                        vareaList.transitionBool=false;
+                    });
+                    document.getElementById('cancelID').addEventListener('click',function(){
+                        vareaList.transitionBool=false;
+                    });
+            }
+        }
+    });
+
+</script>
+<!--<script type="text/javascript" src="js/locklist.js" ></script>-->
+</body>
+
+</html>

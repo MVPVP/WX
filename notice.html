@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="css/main.css" rel="stylesheet"/>
+</head>
+<body class="f-notice f-areaList">
+<div class="content" id="f-noticeList">
+    <ul class="table-view">
+        <li class="table-view-cell"  v-for="(lists,$index) in noticeList" :id="lists.id">
+            <a class="mui-navigate-right" href="javascript:void(0);" @click="noticeItem(lists.title,lists.time,lists.content)" >
+                <h3 class="Mellps" :for="$index" v-text="$index+1+'.'+lists.title"></h3>
+                <div class="bt">
+                    <span class="name"  v-text="lists.issuer"></span>
+                    <span class="time"  v-text="lists.time"></span>
+                </div>
+            </a>
+        </li>
+    </ul>
+    <div class="noneNotice" style="display: none">暂无公告</div>
+
+    <div class="lockPop" id="lockPop">
+        <h3 class="curLock" id="">公告标题</h3>
+        <p class="time"></p>
+        <p class="content"></p>
+
+        <button type="button" class="f-back btnBlock" @click="backpop">我知道了</button>
+    </div>
+    <div class="f-markPop" id="f-markPop" style="display: none;"></div>
+
+</div>
+
+
+<script src="js/vue.js"></script>
+<script src="js/zepto.js"></script>
+
+<script>
+
+    var vnoticeList=new Vue({
+        el:'#f-noticeList',
+        data:{
+            noticeList:[
+//                {title:'百步亭Item 1',issuer:"aaa",time:"aaa",content:"aaa"}
+            ],
+            curAreaTitle:'666'
+        },
+        methods:{
+            noticeItem:function(title,time,content){
+                var curLock=document.querySelector('.curLock');
+                $('#lockPop,#f-markPop').show();
+                curLock.innerText=title;
+                $('.lockPop p.time').text(time);
+                $('.lockPop .content').text(content);
+
+            },
+            backpop:function(){
+                $('#lockPop,#f-markPop').hide();
+            }
+        }
+    });
+
+    var username=localStorage.getItem('usernameLS');
+    var token=localStorage.getItem('tokenLS');
+    var neigbor_id=localStorage.getItem('neigbor_idLS');
+
+    // 创建时带上参数
+    var fs_ip_port=localStorage.getItem('fs_ip_portLS');
+    var URL='https://'+fs_ip_port+'/device/get_NoticeByPager.json';
+    var headers={
+        'token': token,
+        'username': username
+    };
+    var datas={
+        username: username,
+        neigbor_id: neigbor_id,
+        current_page: 1,
+        page_size: 50,
+        notice_type: 2,
+        app_type: 2
+    };
+    $.ajax({
+        type: "GET",
+        url: URL,
+        headers:headers,
+        data:datas,
+        dataType: "json",
+        success: function(msg){
+            if(msg.code==='0'){
+                var res=msg.result;
+                if(res.length>0){
+                    vnoticeList.noticeList=res;
+                }else {
+                    $('.table-view').hide();
+                    $('.noneNotice').show();
+                }
+
+            }else if(msg.code==='3'){
+//                Mtoast(msg.msg);
+                //自动登录；
+                localStorage.setItem('jumpURLLS','notice');
+                autoLoginFunc();
+            }else {
+                loginFunc();
+            }
+        },
+        error : function() {
+//            Mtoast("异常！");
+            var neigbor_id=localStorage.getItem('neigbor_idLS');
+            if(neigbor_id){
+                loginFunc();
+            }else{
+                window.location.href='http://weixin.gdsayee.com.cn/YLB/arealist.html';
+            }
+     }
+    });
+    $('title').text(localStorage.getItem('neigbor_nameLS')?localStorage.getItem('neigbor_nameLS')+'-公告':'');
+    function autoLoginFunc(){
+        window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/autologin.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+    };
+    function loginFunc(){
+        window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/login.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+    };
+    screenResize();
+    function screenResize(){
+        //ipone 4
+        var scrollW=document.documentElement.clientHeight;
+        var scrollH=document.documentElement.clientHeight;
+        if(scrollW<=320){
+            $('#lockPop').css({
+                bottom:'5px',
+                left:'3%',
+                padding:'3% 2% 2% 2%',
+                width:'90%'
+            })
+        }
+        if(scrollH<=450){
+            $('.lockPop p.time').css({
+                'padding-bottom': '5px'
+            });
+            $('.f-notice .lockPop button').css({
+                'margin-top': '5px'
+            });
+            $('.f-notice .lockPop .content').css({
+                'max-height':(scrollH-(scrollH *0.05+90+50))+'px'
+            });
+        }else{
+            $('#lockPop').css({
+                bottom:'50px',
+                left:'5%',
+                padding:'7% 5% 5% 5%',
+                width:'80%'
+            });
+            $('.lockPop p.time').css({
+                'padding-bottom': '10px'
+            });
+            $('.f-notice .lockPop button').css({
+                'margin-top': '20px'
+            });
+            $('.f-notice .lockPop .content').css({
+                'max-height':(scrollH-(scrollH *0.12+90+100))+'px'
+            });
+        }
+//        Mtoast()
+        //end
+    }
+    window.onresize=function(){
+        screenResize();
+    };
+
+    function Mtoast(ev,time){
+        var box=document.createElement('div');
+        box.setAttribute('class','m-toastBox');
+        var text=document.createElement('div');
+        text.setAttribute('class','m-toastText');
+        var txt=document.createTextNode(ev);
+        text.appendChild(txt);
+        box.appendChild(text);
+        document.getElementsByTagName('body')[0].appendChild(box);
+        box.setAttribute('class','m-toastBox');
+        $('.m-toastBox').addClass('m-active');
+        setTimeout(removefunc,time||2000);
+        function removefunc(){
+            $('.m-toastBox').removeClass('m-active');
+            setTimeout(removefunccc,500);
+        }
+        function removefunccc(){
+            $('.m-toastBox').remove();
+        }
+    }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>友邻邦登录</title>
+    <link href="css/main.css" rel="stylesheet"/>
+</head>
+<body class="pdBody">
+<form id="login-form" class="f-login">
+    <div class="input-row">
+        <span><i class="ic"></i></span>
+        <input id="accountTxt" type="tel" class="mui-input-clear" v-bind:placeholder="mobileVal" autofocus="autofocus">
+    </div>
+    <div class="input-row">
+        <span><i class="ic"></i></span>
+        <input id="Txt" type="tel" class="mui-input-clear" v-model="mobileVal" autofocus="autofocus">
+    </div>
+</form>
+<div class="checkbox-row">
+    <input type="checkbox" name="" id="checkbox" value="" v-bind:checked="checked" />
+    <label for="checkbox" >我已阅读并同意相关条框</label>
+</div>
+<button type="button" class="btnBlock f-btnLogin" id="f-btnLogin">登录</button>
+<div id="app-2">
+
+  <span v-bind:title="message"  v-bind:class="[vif ? 'btnBlock' : '']">
+    Hover your mouse over me for a few seconds to see my dynamically bound title!
+  </span>
+    <div v-if="vif">
+        test:v-if;
+    </div>
+    <ul v-for="(todo,index) in todos">
+        <li>{{index}}{{todo.text}}</li>
+    </ul>
+    <button v-on:click="UpperCase" v-bind:class="{btnBlock:vif,cur:vif}">点击von</button>
+    <br/>
+
+    <!--<ol>-->
+        <!--<li>-->
+            <!--<i style="border-width: 5px;border-color: #ff9800 transparent transparent transparent;border-style: dashed dashed dashed solid;;"></i>-->
+            <!--<span></span>-->
+        <!--</li>-->
+        <!--<li-item></li-item>-->
+    <!--</ol>-->
+    <!--<ol>-->
+        <!--<li-Item v-for="mycomponent in todos"></li-Item>-->
+    <!--</ol>-->
+
+</div>
+<div id="app-7">
+    <ol>
+        <li-item v-for="mytext in groceryList" v-bind:pos="mytext"></li-item>
+    </ol>
+    <br>
+    <ol>
+        <my-item></my-item>
+    </ol>
+    <div>
+        <input type="text" v-model="aaa">
+        <input type="text" v-model="bbb">
+        <div>{{countss}}</div>
+    </div>
+
+</div>
+<select v-model="selected">
+    <option>A</option>
+    <option>B</option>
+    <option>C</option>
+</select>
+<span>Selected: {{ selected }}</span>
+<div id="demo">{{ fullName }}</div>
+<input type="checkbox" id="dddd" v-model="cccc">
+<label for="dddd">{{cccc}}</label>
+
+<input type="radio" id="one" value="One" v-model="picked">
+<label for="one">One</label>
+<br>
+<input type="radio" id="two" value="Two" v-model="picked">
+<label for="two">Two</label>
+<br>
+<span>Picked: {{ picked }}</span>
+<br>
+<input v-model.trim="msg">
+<script type="text/javascript" src="js/vue.js" ></script>
+<script type="text/javascript" src="js/default.js" ></script>
+<script>
+//    fetch('http://192.168.1.69:23456/tenement_user/get_appmanage_list.json').then(function(response) {
+//        console.log('fetchsuccess')
+//    }).then(function(json) {
+//        console.log('fetchfail');
+//    });
+fetch('https://nodejs.org/api/http.json').then(function(response) {
+    return response.json();
+}).then(function(json) {
+    insertPhotos(json);
+}).catch(function(err) {
+    // 捕获错误
+    console.log(err);
+});
+
+var xhr = new XMLHttpRequest();
+xhr.onload = function() {
+    insertPhotos(JSON.parse(xhr.responseText));
+};
+xhr.open('GET', 'https://nodejs.org/api/http.json');
+
+</script>
+</body>
+</html>
+<!--v-bind 指令用于响应地更新 HTML 特性 形式如：v-bind:href    缩写为    :href;-->
+
+<!--v-on 指令用于监听DOM事件 形式如：v-on:click  缩写为 @click;-->

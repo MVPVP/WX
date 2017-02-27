@@ -1,0 +1,349 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/main.css" rel="stylesheet"/>
+	</head>
+	<body class="f-lockList">
+		<div class="mui-content">
+			<ul class="table-view" id="f-homeList">
+				<li class="table-view-cell"  v-for="lists in lockList" :id="lists.sip_number" @click="lockItem(lists.lock_name,lists.sip_number,lists.domain_sn)">
+					<a class="">
+						<span v-text="lists.lock_parent_name"></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		<div class="noneNotice" style="display: none">暂无门禁</div>
+		<div class="lockPop" id="lockPop" :title="">
+			<h3 class="curLock" style="display: none"></h3>
+			<p>此列操作涉及到打开单元门观看监视等功能，请谨慎操作。</p>
+			<a class="passwordLock" href="secret.html">
+				密码开锁
+			</a>
+			<div id="j-slideLook" class="slideLook">
+				<div class="bg">右滑打开门锁<span class="countNum"></span></div>
+				<div class="range"></div>
+				<div class="btn" id="lookBtn">
+					<!--<i></i>-->
+				</div>
+			</div>
+			<button type="button" class="f-back btnBlock" @click="backpop">返回</button>
+		</div>
+		<div class="f-markPop" id="f-markPop" style="display: none;"></div>
+
+		<script src="js/hammer.min.js"></script>
+		<script src="js/zepto.js"></script>
+		<script src="js/vue.js"></script>
+		<script>
+
+var username=localStorage.getItem('usernameLS');
+var token=localStorage.getItem('tokenLS');
+var fs_ip_port=localStorage.getItem('fs_ip_portLS');
+var neigbor_id=localStorage.getItem('neigbor_idLS');
+
+var URL='https://'+fs_ip_port+'/config/my_lock_list.json';
+var headers={
+	'token': token,
+	'username': username
+};
+var datas={
+	username: username,
+	neigbor_id: neigbor_id
+};
+
+$.ajax({
+	type: "GET",
+	url: URL,
+	headers: headers,
+	data:datas,
+	dataType: "json",
+	success: function(msg){
+		if(msg.code==='0'){
+			var res=msg.result;
+			if(res.lockList.length>0){
+				vlocklist.lockList=res.lockList;
+			}else {
+				$('.table-view').hide();
+				$('.noneNotice').show();
+			}
+
+		}else if(msg.code==='3'){
+//			Mtoast(msg.msg);
+			//自动登录；
+			localStorage.setItem('jumpURLLS','locklist');
+			autoLoginFunc();
+		}else {
+			loginFunc();
+		}
+	},
+	error : function() {
+//		Mtoast("异常！");
+		var neigbor_id=localStorage.getItem('neigbor_idLS');
+		if(neigbor_id){
+			loginFunc();
+		}else{
+			window.location.href='http://weixin.gdsayee.com.cn/YLB/arealist.html';
+		}
+	}
+});
+$('title').text(localStorage.getItem('neigbor_nameLS')||'');
+function autoLoginFunc(){
+	window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/autologin.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+};
+function loginFunc(){
+	window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/login.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+};
+var vlocklist=new Vue({
+	el:'#f-homeList',
+	data:{
+		lockList:[
+//			{
+//				Objectdomain_sn: "10000484",
+//				lock_name: "一单元",
+//				lock_parent_name: "一栋-一单元",
+//				sip_number: "1000001306"
+//			}
+		]
+	},
+	methods:{
+		lockItem:function(name,id,domain_sn){
+			var curLock=document.querySelector('.curLock')
+			lockPop.style.display='block';
+			markPop.style.display='block';
+			var title=name;
+			curLock.innerText=title;
+			curLock.setAttribute('id',id);
+			sessionStorage.setItem('curLockNameS',name);
+			localStorage.setItem('sip_numberLS',id);
+			localStorage.setItem('domain_snLS',domain_sn);
+
+			//////////////////////////////////////////////////////////////
+			var username=localStorage.getItem('usernameLS');
+			var token=localStorage.getItem('tokenLS');
+			var fs_ip_port=localStorage.getItem('fs_ip_portLS');
+			var sip_number=localStorage.getItem('sip_numberLS');
+
+			var URL='https://'+fs_ip_port+'/users/random_password.json';//随机密码获取
+			var headers={
+				'token': token,
+				'username': username
+			};
+			var datas={
+				username: username,
+				sip_number: sip_number
+			};
+
+			$.ajax({
+				type: "GET",
+				url: URL,
+				headers:headers,
+				data:datas,
+				dataType: "json",
+				success: function(msg){
+					if(msg.code==='0'){
+						var res=msg.result;
+						var lockName=escape(sessionStorage.getItem('curLockNameS'));
+						var URL="secret.html?pw="+res.random_pw+"&time="+res.randomkey_dead_time+"&name="+lockName;
+						$('.passwordLock').attr('href',URL);
+					}else {
+						alert(msg.msg);
+					}
+				},
+				error : function() {
+					alert("异常！");
+				}
+			});
+//
+//			function getUrlData(pw,name,time){
+//				$('.f-secret p .time').text(time);
+//				document.getElementsByClassName('secret')[0].innerHTML=res.random_pw;
+//				document.querySelector('.f-secret .header span').innerHTML=sessionStorage.getItem('curLockNameS');
+//				$('title').text(sessionStorage.getItem('curLockNameS')+'-门禁开锁密码:'+res.random_pw);
+//			}
+
+// ///////////////////////////////////////////////////////////
+
+		},
+		backpop:function(){
+			lockPop.style.display='none';
+			markPop.style.display='none';
+		}
+	}
+});
+var backpop=document.getElementsByClassName('f-back')[0];
+backpop.addEventListener('click',function(){
+	lockPop.style.display='none';
+	markPop.style.display='none';
+});
+//lockList
+var listAll=document.querySelectorAll('.f-lockList .mui-table-view-cell');
+var lockPop=document.getElementById('lockPop');
+var markPop=document.getElementById('f-markPop');
+var slideLook=document.getElementById('j-slideLook');
+var passwordLock=document.querySelector('.passwordLock');
+
+var slideLook=document.getElementById('j-slideLook');
+var hammertime = new Hammer(slideLook);
+var curTime=new Date().getTime();
+var prevTimeS=localStorage.getItem('prevTimeS')||0;
+beginCountDown=Math.ceil((curTime-prevTimeS)/1000);
+if(beginCountDown<5){
+	beginCountDown=5-beginCountDown;
+	$('.countNum').text(beginCountDown+'S');
+	countSet=setInterval(countDown,1000);
+}else {
+	beginCountDown=-1;
+}
+
+hammertime.on('pan', function(ev) {
+	if(beginCountDown>=0)
+		return;
+	var dragX=ev.deltaX;
+	var btnL=document.getElementById('lookBtn');
+
+	var maxL=document.body.scrollWidth*0.7-77;
+	//屏幕大于500px
+	var scrollW=document.body.scrollWidth;
+	if(scrollW>=500){
+		var maxL=document.body.scrollWidth*0.5-77;
+	}
+	//end
+	var rangebg=document.querySelector('.slideLook .range');
+	btnL.style.left=dragX+'px';
+	rangebg.style.right=(maxL-dragX+3)+'px';
+	if(btnL.style.left.replace('px','')<=0){
+		btnL.style.left=0+'px';
+	}
+	if(btnL.style.left.replace('px','')>=maxL){
+		btnL.style.left=maxL+'px';
+		rangebg.style.right=1+'px';
+	}
+	//isFinal
+	if(ev.isFinal){
+		var btnL=document.getElementById('lookBtn');
+		var maxL=document.body.scrollWidth*0.7-77;
+		//屏幕大于500px
+		var scrollW=document.body.scrollWidth;
+		if(scrollW>=500){
+			var maxL=document.body.scrollWidth*0.5-77;
+		}
+		//end
+		var rangebg=document.querySelector('.slideLook .range');
+		if(btnL.style.left.replace('px','')>=maxL){
+
+
+			var username=localStorage.getItem('usernameLS');
+			var token=localStorage.getItem('tokenLS');
+			var fs_ip_port=localStorage.getItem('fs_ip_portLS');
+			var domain_sn=localStorage.getItem('domain_snLS');
+			var time=new Date().getTime();
+
+			var URL='https://'+fs_ip_port+'/device/remote_unlock.json';//随机密码获取
+			var headers={
+				'token': token,
+				'username': username
+			};
+			var datas={
+				username: username,
+				domain_sn: domain_sn,
+				time: time,
+				type: 0
+			};
+			$.ajax({
+				type: "POST",
+				url: URL,
+				headers:headers,
+				data:datas,
+				dataType: "json",
+				success: function(msg){
+					if(msg.code==='0'){
+						var res=msg.result;
+						var name=sessionStorage.getItem('curLockNameS');
+//						alert('已发送解锁请求');
+						Mtoast('已发送解锁请求');
+						beginCountDown=5;
+						var prevTime=new Date().getTime();
+						localStorage.setItem('prevTimeS',prevTime);
+						$('.countNum').text(beginCountDown+'S');
+						countSet=setInterval(countDown,1000);
+					}else {
+						Mtoast(msg.msg);
+					}
+				},
+				error : function() {
+					Mtoast("异常！");
+				}
+			});
+		}
+		btnL.style.left=0+'px';
+		rangebg.style.right=maxL+2+'px';
+	}
+});
+screenResize();
+function screenResize(){
+	//ipone 4
+	var scrollW=document.documentElement.clientHeight;
+	var scrollH=document.documentElement.clientHeight;
+//	if(scrollW<=320||scrollH<=450){
+//		$('#lockPop').css({
+//			bottom:'5px',
+//			left:'3%',
+//			padding:'3% 2% 2% 2%',
+//			width:'90%'
+//		})
+//	}
+	if(scrollH<=450){
+		$('.f-lockList .lockPop').css({
+			'bottom': '5px',
+			'padding': '1% 10%'
+		});
+	}else {
+		$('.f-lockList .lockPop').css({
+			'bottom': '50px',
+			'padding': '5% 10%'
+		});
+	}
+//        Mtoast()
+	//end
+}
+window.onresize=function(){
+	screenResize();
+};
+//
+function countDown(){
+//	var time=beginCountDown-1;
+	$('.countNum').text(--beginCountDown+'S');
+	if(beginCountDown<0){
+		clearInterval(countSet);
+		$('.countNum').text('');
+	}
+}
+//
+function Mtoast(ev,time){
+	var box=document.createElement('div');
+	box.setAttribute('class','m-toastBox');
+	var text=document.createElement('div');
+	text.setAttribute('class','m-toastText');
+	var txt=document.createTextNode(ev);
+	text.appendChild(txt);
+	box.appendChild(text);
+	document.getElementsByTagName('body')[0].appendChild(box);
+	box.setAttribute('class','m-toastBox');
+	$('.m-toastBox').addClass('m-active');
+	setTimeout(removefunc,time||2000);
+	function removefunc(){
+		$('.m-toastBox').removeClass('m-active');
+		setTimeout(removefunccc,500);
+	}
+	function removefunccc(){
+		$('.m-toastBox').remove();
+	}
+};
+
+</script>
+</body>
+
+</html>

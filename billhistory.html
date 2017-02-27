@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<!--<link href="css/mui.min.css" rel="stylesheet" />-->
+		<link href="css/main.css" rel="stylesheet" />
+	</head>
+
+	<body class="f-billhistory">
+		<div class="" id="f-billhistory">
+			<div class="f-yearBox" v-for="yearData in hisDatas" :id="yearData.yearIndex">
+				<div class="title">{{yearData.yearIndex}}年</div>
+				<ul class="mui-table-view">
+					<li class="mui-table-view-cell" v-for="rowData in yearData.yearDatas" :id="rowData.monthIndex" @click="billhistoryRowC(yearData.yearIndex,rowData.monthIndex)">
+					 	<a href="bill.html">
+					 		<span class="time">{{rowData.monthIndex}}&nbsp;月账单</span>
+					 		<span class="money">￥{{rowData.monthMoney}}</span>
+					 		<span class="status" v-if="rowData.monthstatus==0">已结清</span>
+					 		<span class="status" v-else :class="{ paySome:rowData.monthstatus==1,payNone:rowData.monthstatus==2}">未结清</span>
+					 	</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+		
+		<script src="js/vue.js"></script>
+		<script src="js/jsondatas.js"></script>
+		<script type="text/javascript">
+		var billDatasArrSeession=JSON.parse(sessionStorage.getItem('billDatasArrSeession'));
+			billDatasArrSeession.sort(function(x,y){return y.yearIndex-x.yearIndex})//按年份大到小排序；
+			for(i=0,len=billDatasArrSeession.length;i<len;i++){
+				var monthDatas=billDatasArrSeession[i].yearDatas;
+				monthDatas.sort(function(x,y){return x.monthIndex>y.monthIndex?-1:1});//按月份大到小排序；
+			}
+					
+		var vbillhistory=new Vue({
+			el:'#f-billhistory',
+			data:{
+				hisDatas:billDatasArrSeession
+			},
+			methods:{
+				billhistoryRowC:function(y,m){
+					var billDatasArrSeession=JSON.parse(sessionStorage.getItem('billDatasArrSeession'));
+					for(i=0,len=billDatasArrSeession.length;i<len;i++){
+						if(billDatasArrSeession[i].yearIndex===y){
+							var monthDatas=billDatasArrSeession[i].yearDatas;
+					        
+
+							for(var k=0,len=monthDatas.length;k<len;k++){
+								if(monthDatas[k].monthIndex===m){
+									var billDetailS=monthDatas[k].monthDatas;
+									var monthMoney=monthDatas[k].monthMoney;
+									var monthstatus=monthDatas[k].monthstatus;
+							
+									sessionStorage.setItem('billDetailS-money',monthMoney);
+									sessionStorage.setItem('billDetailS-status',monthstatus);
+									sessionStorage.setItem('billDetailS-year',y);
+									sessionStorage.setItem('billDetailS-Month',m);
+									sessionStorage.setItem('billDetailS',JSON.stringify(billDetailS));
+									return;
+								}
+							}
+							
+						}
+					}
+					
+				}
+			}
+		});
+ 
+		</script>
+	</body>
+
+</html>

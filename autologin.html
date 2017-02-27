@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title></title>
+</head>
+<body class="pdBody">
+
+<script type="text/javascript" src="js/zepto.js"></script>
+<script type="text/javascript" src="js/md5.js"></script>
+<!--<script type="text/javascript" src="js/main.js" ></script>-->
+<script>
+    //自动登录部分begin；
+var jumpURL=localStorage.getItem('jumpURLLS');
+autoLogin(jumpURL);
+function autoLogin(jumpURL){
+    var wxCode=GetQueryString('code');
+    var passWordLS=localStorage.getItem('passWordLS');
+    var serverInputLS=localStorage.getItem('serverInputLS');
+    var wxPassWord = hex_md5(wxCode+passWordLS);
+    var URL=serverInputLS+'/wx/wx_user_login.json';
+    var accountVal=localStorage.getItem('usernameLS');
+
+
+    var datas = {
+        code: wxCode,
+        username: accountVal,
+        password: wxPassWord
+    };
+    $.ajax({
+        type: "POST",
+        url: URL,
+        data: datas,
+        dataType: "json",
+        success: function(msg){
+            if(msg.code==='0'){
+                var res=msg.result;
+                localStorage.setItem('usernameLS',res.username);
+                localStorage.setItem('tokenLS',res.token);
+                localStorage.setItem('userIdLS',res.user_id);
+
+                window.location.href=jumpURL+'.html';
+            }else{
+                window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/login.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+            }
+            Mtoast(msg.code);
+        },
+        error : function() {
+            Mtoast(msg.code);
+            window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx48da68d54e97fe76&redirect_uri=http://weixin.gdsayee.com.cn/YLB/login.html&response_type=code&scope=snsapi_base&state=STATE&connect_redirect=1#wechat_redirect";
+        }
+    });
+}
+//自动登录部分end；
+    function Mtoast(ev,time){
+        var box=document.createElement('div');
+        box.setAttribute('class','m-toastBox');
+        var text=document.createElement('div');
+        text.setAttribute('class','m-toastText');
+        var txt=document.createTextNode(ev);
+        text.appendChild(txt);
+        box.appendChild(text);
+        document.getElementsByTagName('body')[0].appendChild(box);
+        box.setAttribute('class','m-toastBox');
+        $('.m-toastBox').addClass('m-active');
+        setTimeout(removefunc,time||2000);
+        function removefunc(){
+            $('.m-toastBox').removeClass('m-active');
+            setTimeout(removefunccc,500);
+        }
+        function removefunccc(){
+            $('.m-toastBox').remove();
+        }
+    }
+    window['Mtoast']=window.Mtoast;
+    function GetQueryString(name)
+    {
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)return  unescape(r[2]); return null;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<!--<link href="css/mui.min.css" rel="stylesheet" />-->
+	<link href="css/main.css" rel="stylesheet" />
+</head>
+<!--全部缴清monthstatus：0；全部没缴清：1；不完全缴清：2-->
+<body>
+	<div class="f-bill"  id="f-billList">
+		<div class="header">
+			<div class="tit"><i></i>{{billData.year}}年<span class="month">{{billData.month}}</span>月物业缴费单</div>
+			<div class="totalBox">
+				<p>本期<span v-if="billData.status==1">总计</span><span v-else>剩余</span>应缴：</p>
+				<div class="money" v-if="billData.status!=0">￥<strong>{{billData.allPay}}</strong></div>
+				<div class="money" v-else>已全部缴清</strong></div>
+			</div>
+			<a href="" class="btnAll mui-pull-right">全部支付</a>
+		</div>
+		<div class="contain">
+			<div class="tit">费用明细清单：</div>
+			<form class="">
+				<ul>
+					<li class="input-row" v-for="(bills,$index) in billData.datas" @click="billRowF($index,bills.status)">
+						<label><span class="name">{{bills.name}}</span><em class="money">{{bills.money}}</em></label>
+						<input name="checkbox1" value="Item 3" type="checkbox"  v-model="bills.check" v-if="bills.status==0">
+						<span class="yijiao"  v-if="bills.status==1">已缴</span>
+					</li>
+				</ul>
+			</form>
+			<div class="allBill">
+				已选共计：<span class="all">￥<strong>{{selMoney}}</strong></span><a href="" class="mui-pull-right">去支付</a>
+			</div>
+		</div>
+<!--			<div>{{allPay}}</div>-->
+	</div>
+
+<script src="js/vue.js"></script>
+<script type="text/javascript">
+	var billDetailSmoney=sessionStorage.getItem('billDetailS-money');
+	var billDetailSyear=sessionStorage.getItem('billDetailS-year');
+	var billDetailSMonth=sessionStorage.getItem('billDetailS-Month');
+	var billDetailS=JSON.parse(sessionStorage.getItem('billDetailS'));
+	var billDetailSstatus=sessionStorage.getItem('billDetailS-status');
+	
+	var vbillData=new Vue({
+		el:'#f-billList',
+		data:{
+			billData:{
+				year:billDetailSyear,
+				month:billDetailSMonth,
+				allPay:billDetailSmoney,
+				status:billDetailSstatus,
+				datas:billDetailS
+			},
+			selMoney:''
+		},
+		methods:{
+			billRowF:function(e,s){
+				if(s==1)//已经缴费的状态不可点击；
+					return;
+				var curData=this.billData.datas[e]
+				curData.check=this.billData.datas[e].check?false:true;
+				var selPayTxtMon=curData.money;
+				if(curData.check){
+					vbillData.selMoney=(eval(vbillData.selMoney)+eval(selPayTxtMon)).toFixed(2);
+				}else{
+					vbillData.selMoney=(eval(vbillData.selMoney)-eval(selPayTxtMon)).toFixed(2);
+				}
+
+			}
+		},
+		computed:{
+			allPay:function(){
+				var curRow=this.billData;
+				var allMoney=0,selMoney=0;
+				for(var i=0,len=curRow.length;i<len;i++){
+					if(curRow[i].status==0){
+						allMoney+=eval(curRow[i].money);
+					}
+				}
+				return allMoney;
+			}
+		}
+	});
+	
+	var allPayTxt=document.querySelector('.f-bill .totalBox .money');
+	var selPayTxt=document.querySelector('.f-bill .contain .allBill .all');
+	var checkboxDefault=document.querySelectorAll('.f-bill form input[type=checkbox]:checked');
+	var moneys=0;
+	vbillData.selMoney=0;
+	for (var i=0,len=checkboxDefault.length;i<len;i++) {
+		var money=checkboxDefault[i].parentElement.querySelector('.money').innerHTML.replace('￥','');
+		moneys+=eval(money);
+		vbillData.selMoney=moneys;
+	}
+
+</script>
+<script src="js/bill.js"></script>
+</body>
+
+</html>

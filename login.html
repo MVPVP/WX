@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>友邻邦用户登录</title>
+    <link href="css/main.css" rel="stylesheet"/>
+</head>
+<body class="pdBody" style="position: absolute;left: 0;bottom: 0; right: 0;top: 0;">
+	<form id="login-form" class="f-login">
+		<div class="input-row">
+			<span><i class="ic"></i></span>
+			<input id="accountTxt" type="tel" class="" placeholder="请输入手机号码" autofocus="autofocus">
+		</div>
+		<div class="input-row">
+			<span><i class="ip"></i></span>
+			<input id="passwordTxt" type="password" class="" placeholder="请输入密码">
+		</div>
+		<div class="input-row code-row">
+			<span><i class="ip"></i></span>
+			<input id="codeTxt" type="text"
+				 class="codeTxt" placeholder="请输入验证码">
+			<canvas id="canvaCode" class="codeImg" onclick="createCode()"></canvas>
+		</div>
+	</form>
+	<div class="checkbox-row">
+		<span id="checkbox" class="Icheckbox check"></span>
+		<a href="terms.html" style="color: #999;">
+			我已阅读并同意相关条款
+		</a>
+		<!--<input type="checkbox" name="" id="checkbox" value="" checked="true" class="Icheckbox"/>-->
+		<!--<label for="checkbox" >我已阅读并同意相关条框</label>-->
+	</div>
+	<button type="button" class="btnBlock f-btnLogin" id="f-btnLogin">登录</button>
+
+<!--切换服务器地址测试	-->
+<div class="f-markPop" id="f-markPop" style="display: none;"></div>
+<div id="CS-box" style="display: none;background: #000;color: #fff;padding: 10px;box-shadow: 3px 3px 5px #ccc;border: 3px solid #999;height: 140px;position: fixed;right: 5%;left: 5%;top: 0;bottom: 0;margin: auto;z-index: 10;">
+	<h3>切换服务器地址</h3>
+	<div>
+		<input id="serverInput" type="text" placeholder="120.236.162.132:8084" style="display: block;width: 100%;height: 30px;margin: 20px 0;">
+	</div>
+	<div style="overflow: hidden">
+		<button id="defaultServer" style="float: left;width: 48%;margin-top:1%;height: 35px">取消</button>
+		<button id="chanceServer" style="float: right;width: 48%;margin-top:1%;height: 35px;">确定</button>
+	</div>
+</div>
+
+	<!--<div class="m-toastBox">-->
+		<!--<div class="m-toastText">手机号码有误</div>-->
+	<!--</div>-->
+	<!--<script type="text/javascript" src="js/vue.js"></script>-->
+	<script type="text/javascript" src="js/zepto.js"></script>
+	<script type="text/javascript" src="js/md5.js"></script>
+	<script type="text/javascript" src="js/main.js" ></script>
+	<script>
+		var logintermsS=sessionStorage.getItem('logintermsS');
+		if(logintermsS){
+//			document.getElementById('checkbox').checked=true;
+			$('#checkbox').addClass('check');
+			sessionStorage.removeItem('logintermsS');
+		}
+//		var defaultServer='120.236.162.132:8084';//默认服务地址；
+		var defaultServer='https://api.sayee.cn:28084';//默认服务地址；
+//		var defaultServer='120.25.78.167:8084';//公司门口机；
+		localStorage.setItem('serverInputLS',defaultServer);
+		$('#serverInput').val(defaultServer);
+		clickNum=0;
+		document.onclick=function(){
+			clickNum++;
+			if(clickNum>4){
+				$('#f-markPop,#CS-box').show();
+			}
+//			alert(clickNum+'df');
+			clearsetTO=setTimeout(deleteClick,2000);
+		};
+		function deleteClick(){
+			clickNum=0;
+			clearTimeout(clearsetTO);
+		}
+		$('#defaultServer')[0].onclick=function(){
+			$('#f-markPop,#CS-box').hide();
+		};
+		$('#chanceServer')[0].onclick=function(){
+			var serverInput=$('#serverInput').val();
+			localStorage.setItem('serverInputLS',serverInput);
+			Mtoast('服务器地址为：'+serverInput);
+			$('#f-markPop,#CS-box').hide();
+			clearTimeout(clearsetTO);
+		};
+	</script>
+</body>
+</html>
